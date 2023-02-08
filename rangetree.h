@@ -5,109 +5,31 @@
 #ifndef RANGETREE_RANGETREE_H
 #define RANGETREE_RANGETREE_H
 
-#define PY_SSIZE_T_CLEAN
+#include "internal_rangetree.h"
+#include "internal_bindertree.h"
 #include <Python.h>
-#include <cmath>
-#include <vector>
-#include <iostream>
 
-#define BLACK 0
-#define RED 1
+int add_double(double x, PyObject *list, int index);
+int add_long(long x, PyObject *list, int index);
+PyObject *vector_to_pylist(std::vector<Node *> &vec);
+struct record *read_records(PyObject *args, int &len);
 
-// One record in the noise file.
-struct record {
-  double x;
-  double y;
-  long lvl;
-};
-
-class Point {
-public:
-  double x;
-  double y;
-  Point(double x, double y);
-  Point();
-  Point *dst(Point *other);
-  Point *abs_subtr(Point *other) const;
-  Point *operator/(int rhs);
-};
-
-class Node {
-public:
-  double key;
-  Point point {};
-  long lvl;
-  Node *left;
-  Node *right;
-  Node *p;
-  int color;
-  void *aux;
-  Node(double key, double x, double y, long lvl, Node *nil);
-  explicit Node(Node *obj); // Copy constructor.
-  Node();
-  bool is_external();
-  [[nodiscard]] double x() const;
-  [[nodiscard]] double y() const;
-  Node *get_y_keyed(); // Swaps the key to y from x.
-
-private:
-  Node *nil;
-};
-
-class Range {
-public:
-  double low;
-  double high;
-  Range(double low, double high);
-  Range();
-  bool contains(double val);
-  bool contains(Range *val);
-  bool is_disjoint_from(Range *val);
-  double len();
-};
-
-class Range2D {
-public:
-  Range x {};
-  Range y {};
-  Range2D(Point *low, Point* high);
-  Point *dim();
-  Point *center();
-  Point *dst(Range2D *other)  ;
-};
-
-class InternalTree {
-public:
-  InternalTree(struct record *data, int &len);
-  InternalTree(std::vector<Node *> nodes, Node *nil);
-  void search(Range2D *q, std::vector<Node *> &nodes);
-
-private:
-  Node *nil;
-  Node *root;
-  void left_rotate(Node *x);
-  void right_rotate(Node *y);
-  void insert_fixup(Node *x);
-  void insert(Node *x);
-  void fin(Node *x);
-  void add_auxilaries(Node *x);
-  void build(struct record *data, int &len);
-  void build(std::vector<Node *> nodes);
-  void leaves_in_subtree(Node *x, std::vector<Node *> &leaves);
-  void search_1D(Range *q, Node *p, Range *c, std::vector<Node *> &nodes);
-  void search_2D(Range2D *q, Node *p, Range *c, std::vector<Node *> &nodes);
-};
-
-// Python-facing front-end of the tree.
+// Python-facing front-end of the range tree.
 class RangeTree {
 public:
   explicit RangeTree(PyObject *args);
   PyObject *search(PyObject *args);
 private:
   InternalTree *internal_tree;
-  struct record *read_records(PyObject *args, int &len);
-  int add_double(double x, PyObject *list, int index);
-  int add_long(long x, PyObject *list, int index);
+};
+
+// Python-facing front-end of the binder tree.
+class BinderTree {
+public:
+  explicit BinderTree(PyObject *args);
+  PyObject *search(PyObject *args);
+private:
+  InternalBinderTree *internal_tree;
 };
 
 typedef struct {

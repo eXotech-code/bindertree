@@ -1,22 +1,9 @@
 cmake_minimum_required(VERSION 3.23)
 project(rangetree)
-
 set(CMAKE_CXX_STANDARD 17)
 
-option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+find_package(Python3 REQUIRED COMPONENTS Development)
 
-set(SRCS "rangetree.cpp" "rangetree.h")
-add_library(RangeTree SHARED ${SRCS})
-
-find_package(Python REQUIRED)
-
-set_target_properties(
-        RangeTree
-        PROPERTIES
-            PREFIX ""
-            OUTPUT_NAME "RangeTree"
-            LINKER_LANGUAGE C
-            LINK_LIBRARIES "${PYTHON_LIBRARIES}"
-            INCLUDE_DIRECTORIES "/opt/homebrew/Cellar/python@3.10/3.10.9/Frameworks/Python.framework/Versions/3.10/include/python3.10;${PYTHON_INCLUDE_DIR}"
-        # COMPILE_DEFINITIONS "Py_LIMITED_API=0x03090000" # (broke in default installation)
-)
+add_library(rangetree SHARED rangetree.cpp internal_rangetree.cpp internal_bindertree.cpp)
+target_include_directories(rangetree PRIVATE ${Python3_INCLUDE_DIRS})
+target_link_libraries(rangetree PRIVATE ${Python3_LIBRARIES})
