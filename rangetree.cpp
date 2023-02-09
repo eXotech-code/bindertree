@@ -5,9 +5,7 @@
 #include "rangetree.h"
 
 int add_double(double x, PyObject *list, int index) {
-  PyObject *newf;
-
-  newf = PyFloat_FromDouble(x);
+  PyObject *newf = PyFloat_FromDouble(x);
   if (!newf) {
     return -1;
   }
@@ -16,9 +14,7 @@ int add_double(double x, PyObject *list, int index) {
 }
 
 int add_long(long x, PyObject *list, int index) {
-  PyObject *newl;
-
-  newl = PyLong_FromLong(x);
+  PyObject *newl = PyLong_FromLong(x);
   if (!newl) {
     return -1;
   }
@@ -26,49 +22,40 @@ int add_long(long x, PyObject *list, int index) {
   return PyList_SetItem(list, index, newl);
 }
 
-struct record *read_records(PyObject *args, int &len) {
-  PyObject *pythonList;
-  struct record *records;
-  struct record erroneous_record = { -1, -1, -1 };
+std::vector<struct record> read_records(PyObject *args) {
+  PyObject *pythonList = nullptr;
 
   if (!PyArg_ParseTuple(args, "O", &pythonList)) {
-    return nullptr;
+    return {};
   }
 
-  len = PyObject_Length(pythonList);
+  const int len = PyObject_Length(pythonList);
   if (len < 0) {
-    return nullptr;
+    return {};
   }
-  records = (record *)malloc(sizeof(struct record *) * len);
-  if (records == nullptr) {
-    return nullptr;
-  }
-  for (int i = 0; i < len; i++) {
-    PyObject *objectList;
-    objectList = PyList_GetItem(pythonList, i);
-    if (!PyList_Check(objectList)) {
-      records[i] = erroneous_record;
-    } else {
-      double *doubleList;
-      PyObject *lvlObj;
-      struct record new_record = {};
 
-      doubleList = (double *)malloc(sizeof(double *) * 2);
+  auto records = std::vector<struct record>(len);
+  for (int i = 0; i < len; i++) {
+    PyObject *objectList = PyList_GetItem(pythonList, i);
+    if (!PyList_Check(objectList)) {
+      return {};
+    } else {
+      struct record new_record = {};
+      std::array<double, 2>doubleList = {0, 0};
+
       for (int j = 0; j < 2; j++) {
-        PyObject *val;
-        val = PyList_GetItem(objectList, j);
+        PyObject *val = PyList_GetItem(objectList, j);
         if (!PyFloat_Check(val)) {
-          records[i] = erroneous_record;
-          break;
+          return {};
         }
         doubleList[j] = PyFloat_AsDouble(val);
       }
 
       new_record.x = doubleList[0];
       new_record.y = doubleList[1];
-      lvlObj = PyList_GetItem(objectList, 2);
+      PyObject *lvlObj = PyList_GetItem(objectList, 2);
       if (!PyLong_Check(lvlObj)) {
-        records[i] = erroneous_record;
+        return {};
       }
       new_record.lvl = PyLong_AsLong(lvlObj);
       records[i] = new_record;
@@ -112,11 +99,14 @@ PyObject *vector_to_pylist(std::vector<Node *> &vec) {
 }
 
 RangeTree::RangeTree(PyObject *args) {
-  struct record *data;
-  int len;
-
-  data = read_records(args, len);
-  this->internal_tree = new InternalTree(data, len);
+  const std::vector<struct record> data = read_records(args);
+  if (data.empty()) {
+    PyErr_SetString(
+        PyExc_RuntimeError,
+        "Got empty list of points from read_records"
+        );
+  }
+  this->internal_tree = new InternalTree(data);
 }
 
 PyObject *RangeTree::search(PyObject *args) {
@@ -138,11 +128,10 @@ PyObject *RangeTree::search(PyObject *args) {
 }
 
 BinderTree::BinderTree(PyObject *args) {
-  struct record *data;
-  int len;
+  std::vector<struct record> data;
 
-  data = read_records(args, len);
-  this->internal_tree = new InternalBinderTree(data, len);
+  data = read_records(args);
+  this->internal_tree = new InternalBinderTree(data);
 }
 
 PyObject *BinderTree::search(PyObject *args) {
@@ -200,7 +189,7 @@ int RangeTree_init(PyObject *self, PyObject *args, PyObject *kwds) {
     m = (RangeTreeObject *)self;
     m->m_rangetree = (RangeTree *)PyObject_Malloc(sizeof(RangeTree));
     if (!m->m_rangetree) {
-    PyErr_SetString(PyExc_RuntimeError, "Memory allocation for RangeTree object failed");
+      PyErr_SetString(PyExc_RuntimeError, "Memory allocation for RangeTree object failed");
     return -1;
     }
 

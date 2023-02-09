@@ -76,21 +76,21 @@ public:
 
 class InternalTree {
 public:
-  InternalTree(struct record *data, int &len);
-  InternalTree(std::vector<Node *> nodes, Node *nil);
+  explicit InternalTree(const std::vector<struct record> &data);
+  InternalTree(const std::vector<Node *> &nodes, Node *nil);
   void search(Range2D *q, std::vector<Node *> &nodes);
 
 private:
-  Node *nil;
-  Node *root;
+  Node *nil = new Node();
+  Node *root = nil;
   void left_rotate(Node *x);
   void right_rotate(Node *y);
   void insert_fixup(Node *x);
   void insert(Node *x);
   void fin(Node *x);
   void add_auxilaries(Node *x);
-  void build(struct record *data, int &len);
-  void build(std::vector<Node *> nodes);
+  void build(const std::vector<struct record> &data);
+  void build(const std::vector<Node *> &nodes);
   void leaves_in_subtree(Node *x, std::vector<Node *> &leaves);
   void search_1D(Range *q, Node *p, Range *c, std::vector<Node *> &nodes);
   void search_2D(Range2D *q, Node *p, Range *c, std::vector<Node *> &nodes);

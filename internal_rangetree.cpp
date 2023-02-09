@@ -154,16 +154,12 @@ Point *Range2D::dst(Range2D *other) {
   return this->center()->abs_subtr(other->center());
 }
 
-InternalTree::InternalTree(struct record *data, int &len) {
-  this->nil = new Node();
-  this->root = this->nil;
-  this->build(data, len);
+InternalTree::InternalTree(const std::vector<struct record> &data) {
+  this->build(data);
 }
 
-InternalTree::InternalTree(std::vector<Node *> nodes, Node *nil) {
+InternalTree::InternalTree(const std::vector<Node *> &nodes, Node *nil) : nil(nil) {
   // This assumes that nil is a valid Node.
-  this->nil = nil;
-  this->root = this->nil;
   this->build(nodes);
 }
 
@@ -310,12 +306,9 @@ void InternalTree::add_auxilaries(Node *x) {
   }
 }
 
-void InternalTree::build(struct record *data, int &len) {
-  for (int i = 0; i < len; i++) {
-    Node *x;
-
-    struct record rec  = data[i];
-    x = new Node(rec.x, rec.x, rec.y, rec.lvl, this->nil);
+void InternalTree::build(const std::vector<struct record> &data) {
+  for (const struct record rec : data) {
+    Node *x = new Node(rec.x, rec.x, rec.y, rec.lvl, this->nil);
     this->insert(x);
   }
 
@@ -323,11 +316,9 @@ void InternalTree::build(struct record *data, int &len) {
   this->add_auxilaries(this->root);
 }
 
-void InternalTree::build(const std::vector<Node *> nodes) {
+void InternalTree::build(const std::vector<Node *> &nodes) {
   for (Node *node : nodes) {
-    Node *x;
-
-    x = new Node(node);
+    Node *x = new Node(node);
     this->insert(x);
   }
 

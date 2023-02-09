@@ -8,11 +8,12 @@
 #include "internal_rangetree.h"
 #include "internal_bindertree.h"
 #include <Python.h>
+#include <array>
 
 int add_double(double x, PyObject *list, int index);
 int add_long(long x, PyObject *list, int index);
 PyObject *vector_to_pylist(std::vector<Node *> &vec);
-struct record *read_records(PyObject *args, int &len);
+std::vector<struct record> read_records(PyObject *args);
 
 // Python-facing front-end of the range tree.
 class RangeTree {
