@@ -34,7 +34,7 @@ private:
 
 typedef struct {
   PyObject_HEAD;
-  RangeTree* m_rangetree;
+  RangeTree *m_rangetree;
 } RangeTreeObject;
 
 PyObject *RangeTree_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
@@ -62,5 +62,38 @@ static PyType_Spec rangetree_spec = {
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     RangeTree_slots
 };
+
+typedef struct {
+  PyObject_HEAD;
+  BinderTree *m_bindertree;
+} BinderTreeObject;
+
+PyObject *BinderTree_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+int BinderTree_init(PyObject *self, PyObject *args, PyObject *kwds);
+void BinderTree_dealloc(BinderTreeObject *self);
+PyObject *BinderTree_search(PyObject *self, PyObject *args);
+
+static PyMethodDef BinderTree_methods[] = {
+    {"search", BinderTree_search, METH_VARARGS, "Searches the binder tree and returns data binded for given zoom lvl."},
+    {nullptr, nullptr, 0, nullptr}
+};
+
+static PyType_Slot BinderTree_slots[] = {
+    {Py_tp_new, (void *)BinderTree_new},
+    {Py_tp_init, (void *)BinderTree_init},
+    {Py_tp_dealloc, (void *)BinderTree_dealloc},
+    {Py_tp_methods, BinderTree_methods},
+    {0, nullptr}
+};
+
+static PyType_Spec bindertree_spec = {
+    "BinderTree",
+    sizeof(BinderTreeObject) + sizeof(BinderTree),
+    0,
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    BinderTree_slots
+};
+
+int add_class(PyType_Spec *spec);
 
 #endif // RANGETREE_RANGETREE_H

@@ -71,7 +71,6 @@ struct range_data InternalBinderTree::ranges(Range2D *q, long zoom_lvl) {
 
         new_ranges->insert(new_ranges->end(), {a, b, c, d});
       }
-      delete ranges;
       ranges = new_ranges;
       dst = (*ranges)[0]->dst((*ranges)[2]);
       iterate = dst->x > target->x * 2 || dst->y > target->y * 2;
@@ -90,13 +89,17 @@ struct zoomed_nodes InternalBinderTree::means_from_ranges(struct range_data rang
   return_val.dst = range_data.dst;
 
   for (Range2D *q : *range_data.ranges) {
-    std::vector<Node *> nodes;
+    std::vector<Node *> *nodes = new std::vector<Node *>;
 
-    this->search(q, nodes);
-    if (range_data.dst->x != SIZE_X && !nodes.empty()) {
-      const long median = high_median(nodes);
-      Point *center = q->center();
-      return_val.nodes->push_back(new Node(center, median));
+    this->search(q, *nodes);
+    if (!nodes->empty()) {
+      if (range_data.dst->x != SIZE_X) {
+        const long median = high_median(*nodes);
+        Point *center = q->center();
+        return_val.nodes->push_back(new Node(center, median));
+      } else {
+        return_val.nodes = nodes;
+      }
     }
   }
 

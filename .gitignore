@@ -2,3 +2,4 @@
 build
 cmake-build-debug
 *.egg-info
+*.DS_Store

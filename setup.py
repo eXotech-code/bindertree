@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 
 module = Extension(
     "rangetree",
-    sources=["internaltree.cpp", "rangetree.cpp"],
+    sources=["internal_rangetree.cpp", "internal_bindertree.cpp", "rangetree.cpp"],
     extra_compile_args=["-std=c++17", "-O3"]
 )
 setup(

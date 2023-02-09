@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from rangetree import RangeTree
+from rangetree import BinderTree
 from json import load
 
 with open("../rangetree/noise-data.json") as f:
@@ -12,6 +12,7 @@ with open("../rangetree/noise-data.json") as f:
         x.reverse()
         points.append(x + lvl)
 
-tree = RangeTree(points)
-res = tree.search(17.0, 18.0, 51.0, 52.0)
-for x in res: print(x)
+tree = BinderTree(points)
+res = tree.search(17.0, 18.0, 51.0, 52.0, 14)
+# res = tree.search(17.0, 18.0, 51.0, 52.0)
+for x in res[0]: print(x)

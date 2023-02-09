@@ -137,14 +137,6 @@ PyObject *RangeTree::search(PyObject *args) {
   return pylist;
 }
 
-PyObject *RangeTree_search(PyObject *self, PyObject *args) {
-  RangeTreeObject *m;
-
-  m = reinterpret_cast<RangeTreeObject *>(self);
-
-  return m->m_rangetree->search(args);
-}
-
 BinderTree::BinderTree(PyObject *args) {
   struct record *data;
   int len;
@@ -231,6 +223,63 @@ void RangeTree_dealloc(RangeTreeObject *self) {
     Py_DECREF(tp);
 }
 
+PyObject *RangeTree_search(PyObject *self, PyObject *args) {
+    RangeTreeObject *m;
+
+    m = reinterpret_cast<RangeTreeObject *>(self);
+
+    return m->m_rangetree->search(args);
+}
+
+PyObject *BinderTree_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
+    BinderTreeObject *self;
+
+    self = (BinderTreeObject*)type->tp_alloc(type, 0);
+    if (self != nullptr) {
+      self->m_bindertree = nullptr;
+    }
+
+    return (PyObject *)self;
+}
+
+int BinderTree_init(PyObject *self, PyObject *args, PyObject *kwds) {
+    BinderTreeObject *m;
+
+    m = (BinderTreeObject *)self;
+    m->m_bindertree = (BinderTree *)PyObject_Malloc(sizeof(BinderTree));
+    if (!m->m_bindertree) {
+      PyErr_SetString(PyExc_RuntimeError, "Memory allocation for RangeTree object failed");
+      return -1;
+    }
+
+    m->m_bindertree = new BinderTree(args);
+
+    return 0;
+}
+
+void BinderTree_dealloc(BinderTreeObject *self) {
+    PyTypeObject *tp;
+    BinderTreeObject *m;
+
+    tp = Py_TYPE(self);
+    m = reinterpret_cast<BinderTreeObject *>(self);
+
+    if (m->m_bindertree) {
+      PyObject_Free(m->m_bindertree);
+    }
+
+    tp->tp_free(self);
+    Py_DECREF(tp);
+}
+
+PyObject *BinderTree_search(PyObject *self, PyObject *args) {
+    BinderTreeObject *m;
+
+    m = reinterpret_cast<BinderTreeObject *>(self);
+
+    return m->m_bindertree->search(args);
+}
+
 static PyModuleDef rangetree_def = {
     PyModuleDef_HEAD_INIT,
     "RangeTree",
@@ -243,20 +292,32 @@ static PyModuleDef rangetree_def = {
     nullptr
 };
 
+int add_class(PyType_Spec *spec, PyObject *py_module) {
+    PyObject *new_class = PyType_FromSpec(spec);
+    if (!new_class) {
+      return -1;
+    }
+    Py_INCREF(new_class);
+    if (PyModule_AddObject(py_module, spec->name, new_class) == -1) {
+      Py_DECREF(new_class);
+      Py_DECREF(py_module);
+      return -1;
+    }
+
+    return 0;
+}
+
 PyMODINIT_FUNC PyInit_rangetree(void) {
-  PyObject *module, *rangetree_class;
+  PyObject *py_module;
 
-  module = PyModule_Create(&rangetree_def);
-  rangetree_class = PyType_FromSpec(&rangetree_spec);
-  if (!rangetree_class) {
-    return nullptr;
+  py_module = PyModule_Create(&rangetree_def);
+
+  if (add_class(&rangetree_spec, py_module) == -1) {
+      return nullptr;
   }
-  Py_INCREF(rangetree_class);
-  if (PyModule_AddObject(module, "RangeTree", rangetree_class) == -1) {
-    Py_DECREF(rangetree_class);
-    Py_DECREF(module);
-    return nullptr;
+  if (add_class(&bindertree_spec, py_module) == -1) {
+      return nullptr;
   }
 
-  return module;
+  return py_module;
 }
