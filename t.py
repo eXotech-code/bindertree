@@ -20,5 +20,5 @@ def test():
         [16.925502817847605, 17.151752510271503, 51.08502801349243, 51.129110243303145, 13]
     ]
     for f in failed_searches:
-        res = tree.search(*f)
+        res = tree.search(*f[:-1])
         print(res[0])

@@ -25,7 +25,7 @@ struct zoomed_nodes {
 
 long high_median(std::vector<Node *> &nodes);
 
-class InternalBinderTree : private InternalTree {
+class InternalBinderTree : public InternalTree {
 public:
   using InternalTree::InternalTree;
   struct zoomed_nodes zoom_search(Range2D *q, long lvl);

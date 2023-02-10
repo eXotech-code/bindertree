@@ -135,6 +135,24 @@ BinderTree::BinderTree(PyObject *args) {
 }
 
 PyObject *BinderTree::search(PyObject *args) {
+  double xmin, xmax, ymin, ymax;
+  Point *low, *high;
+  Range2D *q;
+  PyObject *pylist;
+
+  PyArg_ParseTuple(args, "dddd", &xmin, &xmax, &ymin, &ymax);
+  low = new Point(xmin, ymin);
+  high = new Point(xmax, ymax);
+  q = new Range2D(low, high);
+  std::vector<Node *> nodes = {};
+  this->internal_tree->search(q, nodes);
+
+  pylist = vector_to_pylist(nodes);
+
+  return pylist;
+}
+
+PyObject *BinderTree::zoom_search(PyObject *args) {
     double xmin = 0, xmax = 0, ymin = 0, ymax = 0;
     long lvl = 0;
 
@@ -258,10 +276,15 @@ void BinderTree_dealloc(BinderTreeObject *self) {
     Py_DECREF(tp);
 }
 
-PyObject *BinderTree_search(PyObject *self, PyObject *args) {
-    BinderTreeObject *m;
+PyObject *BinderTree_zoomsearch(PyObject *self, PyObject *args) {
+    auto *m = reinterpret_cast<BinderTreeObject *>(self);
 
-    m = reinterpret_cast<BinderTreeObject *>(self);
+    return m->m_bindertree->zoom_search(args);
+}
+
+
+PyObject *BinderTree_search(PyObject *self, PyObject *args) {
+    auto *m = reinterpret_cast<BinderTreeObject *>(self);
 
     return m->m_bindertree->search(args);
 }

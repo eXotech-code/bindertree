@@ -29,6 +29,7 @@ class BinderTree {
 public:
   explicit BinderTree(PyObject *args);
   PyObject *search(PyObject *args);
+  PyObject *zoom_search(PyObject *args);
 private:
   InternalBinderTree *internal_tree;
 };
@@ -72,10 +73,12 @@ typedef struct {
 PyObject *BinderTree_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 int BinderTree_init(PyObject *self, PyObject *args, PyObject *kwds);
 void BinderTree_dealloc(BinderTreeObject *self);
+PyObject *BinderTree_zoomsearch(PyObject *self, PyObject *args);
 PyObject *BinderTree_search(PyObject *self, PyObject *args);
 
 static PyMethodDef BinderTree_methods[] = {
-    {"search", BinderTree_search, METH_VARARGS, "Searches the binder tree and returns data binded for given zoom lvl."},
+    {"zoom_search", BinderTree_zoomsearch, METH_VARARGS, "Searches the binder tree and returns data binded for given zoom lvl."},
+    {"search", BinderTree_search, METH_VARARGS, "Calls search method of the parent class and returns a list of points on the base lvl."},
     {nullptr, nullptr, 0, nullptr}
 };
 
