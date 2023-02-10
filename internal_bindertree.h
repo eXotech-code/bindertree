@@ -30,7 +30,7 @@ public:
   using InternalTree::InternalTree;
   struct zoomed_nodes zoom_search(Range2D *q, long lvl);
 private:
-  double greater_len(Range2D *q);
+  static double greater_len(Range2D *q);
   Range2D *squareify(Range2D *q);
   Point *target(long zoom_lvl);
   struct range_data ranges(Range2D *q, long zoom_lvl);

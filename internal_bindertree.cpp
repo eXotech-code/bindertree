@@ -21,10 +21,8 @@ double InternalBinderTree::greater_len(Range2D *q) {
 }
 
 Range2D *InternalBinderTree::squareify(Range2D *q) {
-  Point *high;
-
   const double len_side = this->greater_len(q);
-  high = new Point(q->x.low + len_side, q->y.low + len_side / 2);
+  auto high = new Point(q->x.low + len_side, q->y.low + len_side / 2);
 
   return new Range2D(new Point(q->x.low, q->y.low), high);
 }
@@ -37,47 +35,51 @@ Point *InternalBinderTree::target(long zoom_lvl) {
 }
 
 struct range_data InternalBinderTree::ranges(Range2D *q, long zoom_lvl) {
-  Point *target;
-  Range2D *squarified;
-  std::vector<Range2D *> *ranges;
-  bool iterate;
-  Point *dst;
-
-  target = this->target(zoom_lvl);
-  squarified = this->squareify(q);
-  ranges = new std::vector<Range2D *>(1, squarified);
-  struct range_data data = {ranges, new Point(SIZE_X, SIZE_Y)};
+  Point *target = this->target(zoom_lvl);
+  Range2D *squarified = this->squareify(q);
+  struct range_data data = {
+      new std::vector<Range2D *>(1, squarified),
+      new Point(SIZE_X, SIZE_Y)
+  };
 
   if (!(target->x <= SIZE_X || target->y <= SIZE_Y)) {
-    iterate = true;
+    bool iterate = true;
+    std::vector<Range2D *> *new_ranges = nullptr;
+
     while (iterate) {
-      std::vector<Range2D *> *new_ranges;
-
       new_ranges = new std::vector<Range2D *>;
-      for (Range2D *r : *ranges) {
-        Point *center;
-        Range2D *a, *b, *c, *d;
-
-        center = r->center();
+      for (Range2D *r : *data.ranges) {
+        Point *center = r->center();
 
         // bottom-left
-        a = new Range2D(new Point(r->x.low, r->y.low), center);
+        auto a = new Range2D(new Point(r->x.low, r->y.low), center);
         // bottom-right
-        b = new Range2D(new Point(center->x, r->y.low), new Point(r->x.high, center->y));
+        auto b = new Range2D(new Point(center->x, r->y.low), new Point(r->x.high, center->y));
         // top-right
-        c = new Range2D(center, new Point(r->x.high, r->y.high));
+        auto c = new Range2D(center, new Point(r->x.high, r->y.high));
         // top-left
-        d = new Range2D(new Point(r->x.low, center->y), new Point(center->x, r->y.high));
+        auto d = new Range2D(new Point(r->x.low, center->y), new Point(center->x, r->y.high));
 
         new_ranges->insert(new_ranges->end(), {a, b, c, d});
       }
-      ranges = new_ranges;
-      dst = (*ranges)[0]->dst((*ranges)[2]);
+
+      // Delete old ranges as they are no longer needed.
+      if (data.ranges) {
+        for (Range2D *old_range : *data.ranges) {
+          delete old_range;
+        }
+      }
+      delete data.ranges;
+      data.ranges = new_ranges;
+      delete data.dst;
+      Point *dst = (*data.ranges)[0]->dst((*data.ranges)[2]);
+      data.dst = dst;
       iterate = dst->x > target->x * 2 || dst->y > target->y * 2;
     }
-
-    data.dst = dst;
   }
+
+  delete target;
+  delete squarified;
 
   return data;
 }
@@ -107,6 +109,6 @@ struct zoomed_nodes InternalBinderTree::means_from_ranges(struct range_data rang
 }
 
 struct zoomed_nodes InternalBinderTree::zoom_search(Range2D *q, long lvl) {
-  struct range_data ranges = this->ranges(q, lvl);
+  const struct range_data ranges = this->ranges(q, lvl);
   return this->means_from_ranges(ranges);
 }

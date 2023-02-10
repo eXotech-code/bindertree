@@ -135,27 +135,24 @@ BinderTree::BinderTree(PyObject *args) {
 }
 
 PyObject *BinderTree::search(PyObject *args) {
-    double xmin, xmax, ymin, ymax;
-    long lvl;
-    Point *low, *high;
-    Range2D *q;
-    PyObject *nodelist, *pylist, *sizelist;
+    double xmin = 0, xmax = 0, ymin = 0, ymax = 0;
+    long lvl = 0;
 
     PyArg_ParseTuple(args, "ddddi", &xmin, &xmax, &ymin, &ymax, &lvl);
-    low = new Point(xmin, ymin);
-    high = new Point(xmax, ymax);
-    q = new Range2D(low, high);
-    struct zoomed_nodes query_res = this->internal_tree->zoom_search(q, lvl);
+    auto low = new Point(xmin, ymin);
+    auto high = new Point(xmax, ymax);
+    auto q = new Range2D(low, high);
+    const struct zoomed_nodes query_res = this->internal_tree->zoom_search(q, lvl);
 
-    nodelist = vector_to_pylist(*query_res.nodes);
-    pylist = PyList_New(2);
+    PyObject *nodelist = vector_to_pylist(*query_res.nodes);
+    PyObject *pylist = PyList_New(2);
     if (!pylist) {
       return nullptr;
     }
     if (PyList_SetItem(pylist, 0, nodelist) == -1) {
       return nullptr;
     }
-    sizelist = PyList_New(2);
+    PyObject *sizelist = PyList_New(2);
     if (!sizelist) {
       return nullptr;
     }
@@ -297,16 +294,14 @@ int add_class(PyType_Spec *spec, PyObject *py_module) {
 }
 
 PyMODINIT_FUNC PyInit_rangetree(void) {
-  PyObject *py_module;
+    PyObject *py_module = PyModule_Create(&rangetree_def);
 
-  py_module = PyModule_Create(&rangetree_def);
+    if (add_class(&rangetree_spec, py_module) == -1) {
+        return nullptr;
+    }
+    if (add_class(&bindertree_spec, py_module) == -1) {
+        return nullptr;
+    }
 
-  if (add_class(&rangetree_spec, py_module) == -1) {
-      return nullptr;
-  }
-  if (add_class(&bindertree_spec, py_module) == -1) {
-      return nullptr;
-  }
-
-  return py_module;
+    return py_module;
 }
