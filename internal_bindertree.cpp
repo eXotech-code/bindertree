@@ -38,16 +38,15 @@ struct range_data InternalBinderTree::ranges(Range2D *q, long zoom_lvl) {
   Point *target = this->target(zoom_lvl);
   Range2D *squarified = this->squareify(q);
   struct range_data data = {
-      new std::vector<Range2D *>(1, squarified),
+      new std::vector<Range2D *>(1, new Range2D(*squarified)),
       new Point(SIZE_X, SIZE_Y)
   };
 
   if (!(target->x <= SIZE_X || target->y <= SIZE_Y)) {
     bool iterate = true;
-    std::vector<Range2D *> *new_ranges = nullptr;
 
     while (iterate) {
-      new_ranges = new std::vector<Range2D *>;
+      auto new_ranges = new std::vector<Range2D *>;
       for (Range2D *r : *data.ranges) {
         Point *center = r->center();
 
@@ -68,13 +67,12 @@ struct range_data InternalBinderTree::ranges(Range2D *q, long zoom_lvl) {
         for (Range2D *old_range : *data.ranges) {
           delete old_range;
         }
+        delete data.ranges;
       }
-      delete data.ranges;
       data.ranges = new_ranges;
       delete data.dst;
-      Point *dst = (*data.ranges)[0]->dst((*data.ranges)[2]);
-      data.dst = dst;
-      iterate = dst->x > target->x * 2 || dst->y > target->y * 2;
+      data.dst = (*data.ranges)[0]->dst((*data.ranges)[2]);
+      iterate = data.dst->x > target->x * 2 || data.dst->y > target->y * 2;
     }
   }
 
