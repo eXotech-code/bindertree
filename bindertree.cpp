@@ -2,7 +2,7 @@
 // Created by Jakub Piskiewicz on 04/02/2023.
 //
 
-#include "rangetree.h"
+#include "bindertree.h"
 
 int add_double(double x, PyObject *list, int index) {
   PyObject *newf = PyFloat_FromDouble(x);
@@ -98,35 +98,6 @@ PyObject *vector_to_pylist(std::vector<Node *> &vec) {
   return pylist;
 }
 
-RangeTree::RangeTree(PyObject *args) {
-  const std::vector<struct record> data = read_records(args);
-  if (data.empty()) {
-    PyErr_SetString(
-        PyExc_RuntimeError,
-        "Got empty list of points from read_records"
-        );
-  }
-  this->internal_tree = new InternalTree(data);
-}
-
-PyObject *RangeTree::search(PyObject *args) {
-  double xmin, xmax, ymin, ymax;
-  Point *low, *high;
-  Range2D *q;
-  PyObject *pylist;
-
-  PyArg_ParseTuple(args, "dddd", &xmin, &xmax, &ymin, &ymax);
-  low = new Point(xmin, ymin);
-  high = new Point(xmax, ymax);
-  q = new Range2D(low, high);
-  std::vector<Node *> nodes = {};
-  this->internal_tree->search(q, nodes);
-
-  pylist = vector_to_pylist(nodes);
-
-  return pylist;
-}
-
 BinderTree::BinderTree(PyObject *args) {
   std::vector<struct record> data;
 
@@ -187,58 +158,8 @@ PyObject *BinderTree::zoom_search(PyObject *args) {
     return pylist;
 }
 
-PyObject *RangeTree_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
-    RangeTreeObject *self;
-
-    self = (RangeTreeObject*)type->tp_alloc(type, 0);
-    if (self != nullptr) {
-    self->m_rangetree = nullptr;
-    }
-
-    return (PyObject *)self;
-}
-
-int RangeTree_init(PyObject *self, PyObject *args, PyObject *kwds) {
-    RangeTreeObject *m;
-
-    m = (RangeTreeObject *)self;
-    m->m_rangetree = (RangeTree *)PyObject_Malloc(sizeof(RangeTree));
-    if (!m->m_rangetree) {
-      PyErr_SetString(PyExc_RuntimeError, "Memory allocation for RangeTree object failed");
-    return -1;
-    }
-
-    m->m_rangetree = new RangeTree(args);
-    return 0;
-}
-
-void RangeTree_dealloc(RangeTreeObject *self) {
-    PyTypeObject *tp;
-    RangeTreeObject* m;
-
-    tp = Py_TYPE(self);
-    m = reinterpret_cast<RangeTreeObject *>(self);
-
-    if (m->m_rangetree) {
-    PyObject_Free(m->m_rangetree);
-    }
-
-    tp->tp_free(self);
-    Py_DECREF(tp);
-}
-
-PyObject *RangeTree_search(PyObject *self, PyObject *args) {
-    RangeTreeObject *m;
-
-    m = reinterpret_cast<RangeTreeObject *>(self);
-
-    return m->m_rangetree->search(args);
-}
-
 PyObject *BinderTree_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
-    BinderTreeObject *self;
-
-    self = (BinderTreeObject*)type->tp_alloc(type, 0);
+    BinderTreeObject *self = (BinderTreeObject*)type->tp_alloc(type, 0);
     if (self != nullptr) {
       self->m_bindertree = nullptr;
     }
@@ -289,9 +210,9 @@ PyObject *BinderTree_search(PyObject *self, PyObject *args) {
     return m->m_bindertree->search(args);
 }
 
-static PyModuleDef rangetree_def = {
+static PyModuleDef bindertree_def = {
     PyModuleDef_HEAD_INIT,
-    "RangeTree",
+    "BinderTree",
     "A range tree with support for generating map zoom levels.",
     -1,
     nullptr,
@@ -316,12 +237,9 @@ int add_class(PyType_Spec *spec, PyObject *py_module) {
     return 0;
 }
 
-PyMODINIT_FUNC PyInit_rangetree(void) {
-    PyObject *py_module = PyModule_Create(&rangetree_def);
+PyMODINIT_FUNC PyInit_bindertree(void) {
+    PyObject *py_module = PyModule_Create(&bindertree_def);
 
-    if (add_class(&rangetree_spec, py_module) == -1) {
-        return nullptr;
-    }
     if (add_class(&bindertree_spec, py_module) == -1) {
         return nullptr;
     }

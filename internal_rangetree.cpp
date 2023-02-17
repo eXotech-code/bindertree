@@ -342,14 +342,10 @@ void InternalTree::search_1D(Range *q, Node *p, Range *c, std::vector<Node *> &n
 
 void InternalTree::search_2D(Range2D *q, Node *p, Range *c, std::vector<Node *> &nodes) {
   if (p != this->nil) {
-    if (p->is_external()) {
-      if (q->x.contains(p->key)) {
-        nodes.push_back(p);
-      }
+    if (p->is_external() && q->x.contains(p->key)) {
+      nodes.push_back(p);
     } else if (q->x.contains(c)) {
-      InternalTree *aux_tree;
-
-      aux_tree = (InternalTree *)p->aux;
+      InternalTree *aux_tree = (InternalTree *)p->aux;
       this->search_1D(&(q->y), aux_tree->root, new Range(-1000, 1000), nodes);
     } else if (!q->x.is_disjoint_from(c)) {
       this->search_2D(q, p->left, new Range(c->low, p->key), nodes);
