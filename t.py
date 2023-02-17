@@ -14,13 +14,14 @@ with open("../rangetree/noise-data.json") as f:
 
 xs = [x[0] for x in points]
 ys = [x[1] for x in points]
-max_x = max(xs)
-max_y = max(ys)
 min_x = min(xs)
+max_x = max(xs)
 min_y = min(ys)
+max_y = max(ys)
 
 tree = BinderTree(points)
 
+print(min_x, max_x, min_y, max_y)
 tree_srt = sorted([x[:-1] for x in tree.search(min_x, max_x, min_y, max_y)])
 pt_srt = sorted([x[:-1] for x in points])
 lines_tree = [", ".join([str(y) for y in x]) for x in tree_srt]
