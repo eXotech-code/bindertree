@@ -22,7 +22,7 @@ int add_long(long x, PyObject *list, int index) {
   return PyList_SetItem(list, index, newl);
 }
 
-std::vector<struct record> read_records(PyObject *args) {
+std::vector<record> read_records(PyObject *args) {
   PyObject *pythonList = nullptr;
 
   if (!PyArg_ParseTuple(args, "O", &pythonList)) {
@@ -34,30 +34,27 @@ std::vector<struct record> read_records(PyObject *args) {
     return {};
   }
 
-  auto records = std::vector<struct record>(len);
+  auto records = std::vector<record>(len);
   for (int i = 0; i < len; i++) {
     PyObject *objectList = PyList_GetItem(pythonList, i);
     if (!PyList_Check(objectList)) {
       return {};
     } else {
-      struct record new_record = {};
-      std::array<double, 2>doubleList = {0, 0};
+      record new_record = {{}, 0};
 
       for (int j = 0; j < 2; j++) {
         PyObject *val = PyList_GetItem(objectList, j);
         if (!PyFloat_Check(val)) {
           return {};
         }
-        doubleList[j] = PyFloat_AsDouble(val);
+         new_record.p.push_back(PyFloat_AsDouble(val));
       }
 
-      new_record.x = doubleList[0];
-      new_record.y = doubleList[1];
       PyObject *lvlObj = PyList_GetItem(objectList, 2);
       if (!PyLong_Check(lvlObj)) {
         return {};
       }
-      new_record.lvl = PyLong_AsLong(lvlObj);
+      new_record.lvl = static_cast<int>(PyLong_AsLong(lvlObj));
       records[i] = new_record;
     }
   }
@@ -65,32 +62,30 @@ std::vector<struct record> read_records(PyObject *args) {
   return records;
 }
 
-PyObject *vector_to_pylist(std::vector<Node *> &vec) {
-  PyObject *pylist;
-
-  pylist = PyList_New((Py_ssize_t)vec.size());
+PyObject *vector_to_pylist(std::vector<record> &vec) {
+  PyObject *pylist = PyList_New((Py_ssize_t)vec.size());
   if (!pylist) {
     return nullptr;
   }
-  for (unsigned long i = 0; i < vec.size(); i++) {
-    PyObject *node_content;
-    Node *x;
 
-    node_content = PyList_New(3);
-    if (!node_content) {
+  for (size_t i = 0; i < vec.size(); i++) {
+    PyObject *rec_content = PyList_New(3);
+    if (!rec_content) {
       return nullptr;
     }
-    x = vec[i];
-    if (add_double(x->x(), node_content, 0) == -1) {
+
+    record x = vec[i];
+
+    if (add_double(x.p[0], rec_content, 0) == -1) {
       return nullptr;
     }
-    if (add_double(x->y(), node_content, 1) == -1) {
+    if (add_double(x.p[1], rec_content, 1) == -1) {
       return nullptr;
     }
-    if (add_long(x->lvl, node_content, 2) == -1) {
+    if (add_long(x.lvl, rec_content, 2) == -1) {
       return nullptr;
     }
-    if (PyList_SetItem(pylist, i, node_content) == -1) {
+    if (PyList_SetItem(pylist, i, rec_content) == -1) {
       return nullptr;
     }
   }
@@ -99,10 +94,10 @@ PyObject *vector_to_pylist(std::vector<Node *> &vec) {
 }
 
 BinderTree::BinderTree(PyObject *args) {
-  std::vector<struct record> data;
+  std::vector<record> data;
 
   data = read_records(args);
-  this->internal_tree = new InternalBinderTree(data);
+  this->internal_tree = InternalBinderTree(data);
 }
 
 PyObject *BinderTree::search(PyObject *args) {
@@ -115,10 +110,9 @@ PyObject *BinderTree::search(PyObject *args) {
   low = new Point(xmin, ymin);
   high = new Point(xmax, ymax);
   q = new Range2D(low, high);
-  std::vector<Node *> nodes = {};
-  this->internal_tree->search(q, nodes);
+  std::vector<record> points = this->internal_tree.search(q);
 
-  pylist = vector_to_pylist(nodes);
+  pylist = vector_to_pylist(points);
 
   return pylist;
 }
@@ -131,9 +125,9 @@ PyObject *BinderTree::zoom_search(PyObject *args) {
     auto low = new Point(xmin, ymin);
     auto high = new Point(xmax, ymax);
     auto q = new Range2D(low, high);
-    const struct zoomed_nodes query_res = this->internal_tree->zoom_search(q, lvl);
+    const return_points query_res = this->internal_tree.zoom_search(q, lvl);
 
-    PyObject *nodelist = vector_to_pylist(*query_res.nodes);
+    PyObject *pointlist = vector_to_pylist(query_res.points);
     PyObject *pylist = PyList_New(2);
     if (!pylist) {
       return nullptr;

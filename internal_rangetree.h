@@ -5,18 +5,13 @@
 #ifndef RANGETREE_INTERNAL_RANGETREE_H
 #define RANGETREE_INTERNAL_RANGETREE_H
 
-#include <cmath>
 #include <vector>
 
 // One record in the noise file.
 struct record {
-  double x;
-  double y;
-  long lvl;
+  std::vector<double> p;
+  int lvl;
 };
-
-constexpr int BLACK = 0;
-constexpr int RED = 1;
 
 class Point {
 public:
@@ -27,29 +22,6 @@ public:
   Point *dst(Point *other);
   Point *abs_subtr(Point *other) const;
   Point *operator/(int rhs);
-};
-
-class Node {
-public:
-  double key;
-  Point point {};
-  long lvl;
-  Node *left;
-  Node *right;
-  Node *p;
-  int color;
-  void *aux;
-  Node(double key, double x, double y, long lvl, Node *nil);
-  Node(Point *loc, long lvl); // This is Node returned by the zoom_search in InternalBinderTree.
-  explicit Node(Node *obj); // Copy constructor.
-  Node();
-  bool is_external();
-  [[nodiscard]] double x() const;
-  [[nodiscard]] double y() const;
-  Node *get_y_keyed(); // Swaps the key to y from x.
-
-private:
-  Node *nil;
 };
 
 class Range {
@@ -74,26 +46,29 @@ public:
   Point *dst(Range2D *other)  ;
 };
 
+struct node {
+  std::vector<double> p;
+  int lvl;
+  node *l; // left child
+  node *r; // right child
+  node *aux; // pointer to root of auxilary tree (only relevant for nodes in first dim).
+  node(record &k) : p(k.p), lvl(k.lvl), l(nullptr), r(nullptr), aux(nullptr) {};
+};
+
 class InternalTree {
 public:
-  explicit InternalTree(const std::vector<struct record> &data);
-  InternalTree(const std::vector<Node *> &nodes, Node *nil);
-  void search(Range2D *q, std::vector<Node *> &nodes);
-
+  InternalTree(std::vector<record> &points);
+  std::vector<record> search(Range2D *q);
+  ~ InternalTree();
 private:
-  Node *nil = new Node();
-  Node *root = nil;
-  void left_rotate(Node *x);
-  void right_rotate(Node *y);
-  void insert_fixup(Node *x);
-  void insert(Node *x);
-  void fin(Node *x);
-  void add_auxilaries(Node *x);
-  void build(const std::vector<struct record> &data);
-  void build(const std::vector<Node *> &nodes);
-  void leaves_in_subtree(Node *x, std::vector<Node *> &leaves);
-  void search_1D(Range *q, Node *p, Range *c, std::vector<Node *> &nodes);
-  void search_2D(Range2D *q, Node *p, Range *c, std::vector<Node *> &nodes);
+  node *root;
+  node *build(std::vector<record> &points, int d, std::vector<record>::iterator l, std::vector<record>::iterator r);
+  bool is_external(node *x);
+  void leaves_in_subtree(node *x, std::vector<node *> &leaves);
+  void search_1D(Range *q, node *p, Range *c, std::vector<node *> &nodes);
+  void search_2D(Range2D *q, node *p, Range *c, std::vector<node *> &nodes);
+  // Recursively destroys subtree of x along with the auxilary trees.
+  void destroy(node *x);
 };
 
 #endif // RANGETREE_INTERNAL_RANGETREE_H

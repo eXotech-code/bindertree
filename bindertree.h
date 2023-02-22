@@ -12,17 +12,17 @@
 
 int add_double(double x, PyObject *list, int index);
 int add_long(long x, PyObject *list, int index);
-PyObject *vector_to_pylist(std::vector<Node *> &vec);
-std::vector<struct record> read_records(PyObject *args);
+PyObject *vector_to_pylist(std::vector<record> &vec);
+std::vector<record> read_records(PyObject *args);
 
 // Python-facing front-end of the binder tree.
 class BinderTree {
 public:
-  explicit BinderTree(PyObject *args);
+  BinderTree(PyObject *args);
   PyObject *search(PyObject *args);
   PyObject *zoom_search(PyObject *args);
 private:
-  InternalBinderTree *internal_tree;
+  InternalBinderTree internal_tree;
 };
 
 typedef struct {

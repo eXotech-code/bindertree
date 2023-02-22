@@ -6,7 +6,7 @@
 #define RANGETREE_INTERNAL_BINDERTREE_H
 
 #include "internal_rangetree.h"
-#include <array>
+#include <cmath>
 
 constexpr unsigned int MAX_ZOOM = 15;
 constexpr float SIZE_X = 0.00080411;
@@ -18,23 +18,23 @@ struct range_data {
 };
 
 // Return value for zoom_search. Nodes and distance between them as Point.
-struct zoomed_nodes {
-  std::vector<Node *> *nodes;
+struct return_points {
+  std::vector<record> points;
   Point *dst;
 };
 
-long high_median(std::vector<Node *> &nodes);
+int high_median(std::vector<record> &points);
 
 class InternalBinderTree : public InternalTree {
 public:
   using InternalTree::InternalTree;
-  struct zoomed_nodes zoom_search(Range2D *q, long lvl);
+  return_points zoom_search(Range2D *q, int lvl);
 private:
   static double greater_len(Range2D *q);
   Range2D *squareify(Range2D *q);
   Point *target(long zoom_lvl);
   struct range_data ranges(Range2D *q, long zoom_lvl);
-  struct zoomed_nodes means_from_ranges(struct range_data range_data);
+  return_points means_from_ranges(range_data range_data);
 };
 
 #endif // RANGETREE_INTERNAL_BINDERTREE_H

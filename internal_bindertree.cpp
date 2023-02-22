@@ -4,10 +4,10 @@
 
 #include "internal_bindertree.h"
 
-long high_median(std::vector<Node *> &nodes) {
-  const long mid = ceil(nodes.size() / 2);
+int high_median(std::vector<record> &points) {
+  const long mid = ceil(points.size() / 2);
 
-  return nodes[mid]->lvl;
+  return points[mid].lvl;
 }
 
 double InternalBinderTree::greater_len(Range2D *q) {
@@ -82,31 +82,29 @@ struct range_data InternalBinderTree::ranges(Range2D *q, long zoom_lvl) {
   return data;
 }
 
-struct zoomed_nodes InternalBinderTree::means_from_ranges(struct range_data range_data) {
-  struct zoomed_nodes return_val {};
+return_points InternalBinderTree::means_from_ranges(range_data range_data) {
+  return_points res {};
 
-  return_val.nodes = new std::vector<Node *>;
-  return_val.dst = range_data.dst;
+  res.points = std::vector<record> {};
+  res.dst = range_data.dst;
 
   for (Range2D *q : *range_data.ranges) {
-    std::vector<Node *> *nodes = new std::vector<Node *>;
+    std::vector<record> points = this->search(q);
 
-    this->search(q, *nodes);
-    if (!nodes->empty()) {
+    if (!points.empty()) {
       if (range_data.dst->x != SIZE_X) {
-        const long median = high_median(*nodes);
         Point *center = q->center();
-        return_val.nodes->push_back(new Node(center, median));
+        res.points.push_back({{center->x, center->y}, high_median(points)});
       } else {
-        return_val.nodes = nodes;
+        res.points = points;
       }
     }
   }
 
-  return return_val;
+  return res;
 }
 
-struct zoomed_nodes InternalBinderTree::zoom_search(Range2D *q, long lvl) {
-  const struct range_data ranges = this->ranges(q, lvl);
+return_points InternalBinderTree::zoom_search(Range2D *q, int lvl) {
+  const range_data ranges = this->ranges(q, lvl);
   return this->means_from_ranges(ranges);
 }
