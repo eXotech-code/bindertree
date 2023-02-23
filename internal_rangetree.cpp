@@ -76,9 +76,9 @@ Point Range2D::dst(Range2D other) {
 }
 
 node *InternalTree::build(std::vector<record> &points, int d, std::vector<record>::iterator l, std::vector<record>::iterator r) {
-   size_t n = r - l;
+   std::size_t n = r - l;
 
-   size_t m = static_cast<int>(n / 2);
+   std::size_t m = static_cast<int>(n / 2);
 
    record k = points[m];
 

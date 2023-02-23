@@ -6,6 +6,8 @@
 #define RANGETREE_INTERNAL_RANGETREE_H
 
 #include <vector>
+#include <cmath>
+#include <algorithm>
 
 // One record in the noise file.
 struct record {
