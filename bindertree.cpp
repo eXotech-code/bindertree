@@ -22,6 +22,37 @@ int add_long(long x, PyObject *list, int index) {
   return PyList_SetItem(list, index, newl);
 }
 
+PyObject *vector_to_pylist(std::vector<record> &vec) {
+  PyObject *pylist = PyList_New((Py_ssize_t)vec.size());
+  if (!pylist) {
+    return nullptr;
+  }
+
+  for (size_t i = 0; i < vec.size(); i++) {
+    PyObject *rec_content = PyList_New(3);
+    if (!rec_content) {
+      return nullptr;
+    }
+
+    record x = vec[i];
+
+    if (add_double(x.p[0], rec_content, 0) == -1) {
+      return nullptr;
+    }
+    if (add_double(x.p[1], rec_content, 1) == -1) {
+      return nullptr;
+    }
+    if (add_long(x.lvl, rec_content, 2) == -1) {
+      return nullptr;
+    }
+    if (PyList_SetItem(pylist, i, rec_content) == -1) {
+      return nullptr;
+    }
+  }
+
+  return pylist;
+}
+
 std::vector<record> read_records(PyObject *args) {
   PyObject *pythonList = nullptr;
 
@@ -60,37 +91,6 @@ std::vector<record> read_records(PyObject *args) {
   }
 
   return records;
-}
-
-PyObject *vector_to_pylist(std::vector<record> &vec) {
-  PyObject *pylist = PyList_New((Py_ssize_t)vec.size());
-  if (!pylist) {
-    return nullptr;
-  }
-
-  for (size_t i = 0; i < vec.size(); i++) {
-    PyObject *rec_content = PyList_New(3);
-    if (!rec_content) {
-      return nullptr;
-    }
-
-    record x = vec[i];
-
-    if (add_double(x.p[0], rec_content, 0) == -1) {
-      return nullptr;
-    }
-    if (add_double(x.p[1], rec_content, 1) == -1) {
-      return nullptr;
-    }
-    if (add_long(x.lvl, rec_content, 2) == -1) {
-      return nullptr;
-    }
-    if (PyList_SetItem(pylist, i, rec_content) == -1) {
-      return nullptr;
-    }
-  }
-
-  return pylist;
 }
 
 PyObject *BinderTree::search(PyObject *args) {
