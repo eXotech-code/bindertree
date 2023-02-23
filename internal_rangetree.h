@@ -57,7 +57,7 @@ struct node {
 
 class InternalTree {
 public:
-  InternalTree(std::vector<record> &points);
+  InternalTree(std::vector<record> points);
   std::vector<record> search(Range2D *q);
   ~ InternalTree();
 private:

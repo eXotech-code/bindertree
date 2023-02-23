@@ -93,13 +93,6 @@ PyObject *vector_to_pylist(std::vector<record> &vec) {
   return pylist;
 }
 
-BinderTree::BinderTree(PyObject *args) {
-  std::vector<record> data;
-
-  data = read_records(args);
-  this->internal_tree = InternalBinderTree(data);
-}
-
 PyObject *BinderTree::search(PyObject *args) {
   double xmin, xmax, ymin, ymax;
   Point *low, *high;
@@ -110,7 +103,7 @@ PyObject *BinderTree::search(PyObject *args) {
   low = new Point(xmin, ymin);
   high = new Point(xmax, ymax);
   q = new Range2D(low, high);
-  std::vector<record> points = this->internal_tree.search(q);
+  std::vector<record> points = this->internal_tree->search(q);
 
   pylist = vector_to_pylist(points);
 
@@ -125,14 +118,14 @@ PyObject *BinderTree::zoom_search(PyObject *args) {
     auto low = new Point(xmin, ymin);
     auto high = new Point(xmax, ymax);
     auto q = new Range2D(low, high);
-    const return_points query_res = this->internal_tree.zoom_search(q, lvl);
+    return_points query_res = this->internal_tree->zoom_search(q, lvl);
 
     PyObject *pointlist = vector_to_pylist(query_res.points);
     PyObject *pylist = PyList_New(2);
     if (!pylist) {
       return nullptr;
     }
-    if (PyList_SetItem(pylist, 0, nodelist) == -1) {
+    if (PyList_SetItem(pylist, 0, pointlist) == -1) {
       return nullptr;
     }
     PyObject *sizelist = PyList_New(2);

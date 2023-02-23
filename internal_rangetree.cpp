@@ -110,7 +110,7 @@ node *InternalTree::build(std::vector<record> &points, int d, std::vector<record
    return x;
 }
 
-InternalTree::InternalTree(std::vector<record> &points) {
+InternalTree::InternalTree(std::vector<record> points) {
   std::sort(points.begin(), points.end(), [](record &a, record &b) {
     return a.p[1] < b.p[1];
   });

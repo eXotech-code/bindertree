@@ -34,12 +34,4 @@ def test():
     max_y = max(ys)
 
     tree = BinderTree(points)
-    # tree.search(min_x, max_x, min_y, max_y)
-
-# print("SEARCH RANGE:", min_x, max_x, min_y, max_y)
-# print("POINTS")
-# for x in sorted(points, key=lambda val: (val[0], val[1])):
-#     print(x)
-# print("TREE")
-# for x in sorted(results, key=lambda val: (val[0], val[1])):
-#     print(x)
+    for x in tree.search(min_x, max_x, min_y, max_y): print(x)
