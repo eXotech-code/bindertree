@@ -35,3 +35,6 @@ def test():
 
     tree = BinderTree(points)
     for x in tree.search(min_x, max_x, min_y, max_y): print(x)
+
+if __name__ == "__main__":
+    test()

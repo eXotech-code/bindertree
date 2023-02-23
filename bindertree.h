@@ -17,12 +17,13 @@ std::vector<record> read_records(PyObject *args);
 
 // Python-facing front-end of the binder tree.
 class BinderTree {
-public:
-  BinderTree(PyObject *args) : internal_tree(new InternalBinderTree(read_records(args))) {};
-  PyObject *search(PyObject *args);
-  PyObject *zoom_search(PyObject *args);
-private:
-  InternalBinderTree *internal_tree;
+  public:
+    BinderTree(PyObject *args) : internal_tree(new InternalBinderTree(read_records(args))) {};
+    PyObject *search(PyObject *args);
+    PyObject *zoom_search(PyObject *args);
+    ~ BinderTree() { delete internal_tree; };
+  private:
+    InternalBinderTree *internal_tree;
 };
 
 typedef struct {

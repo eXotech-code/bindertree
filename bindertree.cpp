@@ -95,14 +95,12 @@ std::vector<record> read_records(PyObject *args) {
 
 PyObject *BinderTree::search(PyObject *args) {
   double xmin, xmax, ymin, ymax;
-  Point *low, *high;
-  Range2D *q;
   PyObject *pylist;
 
   PyArg_ParseTuple(args, "dddd", &xmin, &xmax, &ymin, &ymax);
-  low = new Point(xmin, ymin);
-  high = new Point(xmax, ymax);
-  q = new Range2D(low, high);
+  Point low = {xmin, ymin};
+  Point high = {xmax, ymax};
+  Range2D q = {low, high};
   std::vector<record> points = this->internal_tree->search(q);
 
   pylist = vector_to_pylist(points);
@@ -111,13 +109,13 @@ PyObject *BinderTree::search(PyObject *args) {
 }
 
 PyObject *BinderTree::zoom_search(PyObject *args) {
-    double xmin = 0, xmax = 0, ymin = 0, ymax = 0;
-    long lvl = 0;
+    double xmin, xmax, ymin, ymax;
+    int lvl;
 
     PyArg_ParseTuple(args, "ddddi", &xmin, &xmax, &ymin, &ymax, &lvl);
-    auto low = new Point(xmin, ymin);
-    auto high = new Point(xmax, ymax);
-    auto q = new Range2D(low, high);
+    Point low = {xmin, ymin};
+    Point high = {xmax, ymax};
+    Range2D q = {low, high};
     return_points query_res = this->internal_tree->zoom_search(q, lvl);
 
     PyObject *pointlist = vector_to_pylist(query_res.points);
@@ -126,19 +124,30 @@ PyObject *BinderTree::zoom_search(PyObject *args) {
       return nullptr;
     }
     if (PyList_SetItem(pylist, 0, pointlist) == -1) {
+      /* We have to let Python deallocate pylist since we will return a nullptr and
+       * the calling function won't be able to DECREF on nothing xD */
+      Py_DECREF(pylist);
+      // Reference count should be 0 here.
       return nullptr;
     }
     PyObject *sizelist = PyList_New(2);
     if (!sizelist) {
+      Py_DECREF(pylist);
       return nullptr;
     }
-    if (add_double(query_res.dst->x, sizelist, 0) == -1) {
+    if (add_double(query_res.dst.x, sizelist, 0) == -1) {
+      Py_DECREF(pylist);
+      Py_DECREF(sizelist);
       return nullptr;
     }
-    if (add_double(query_res.dst->y, sizelist, 1) == -1) {
+    if (add_double(query_res.dst.y, sizelist, 1) == -1) {
+      Py_DECREF(pylist);
+      Py_DECREF(sizelist);
       return nullptr;
     }
     if (PyList_SetItem(pylist, 1, sizelist) == -1) {
+      Py_DECREF(pylist);
+      Py_DECREF(sizelist);
       return nullptr;
     }
 
@@ -155,9 +164,7 @@ PyObject *BinderTree_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
 }
 
 int BinderTree_init(PyObject *self, PyObject *args, PyObject *kwds) {
-    BinderTreeObject *m;
-
-    m = (BinderTreeObject *)self;
+    auto m = (BinderTreeObject *)self;
     m->m_bindertree = (BinderTree *)PyObject_Malloc(sizeof(BinderTree));
     if (!m->m_bindertree) {
       PyErr_SetString(PyExc_RuntimeError, "Memory allocation for RangeTree object failed");
@@ -170,11 +177,8 @@ int BinderTree_init(PyObject *self, PyObject *args, PyObject *kwds) {
 }
 
 void BinderTree_dealloc(BinderTreeObject *self) {
-    PyTypeObject *tp;
-    BinderTreeObject *m;
-
-    tp = Py_TYPE(self);
-    m = reinterpret_cast<BinderTreeObject *>(self);
+    PyTypeObject *tp = Py_TYPE(self);
+    auto m = reinterpret_cast<BinderTreeObject *>(self);
 
     if (m->m_bindertree) {
       PyObject_Free(m->m_bindertree);
@@ -224,7 +228,7 @@ int add_class(PyType_Spec *spec, PyObject *py_module) {
     return 0;
 }
 
-PyMODINIT_FUNC PyInit_bindertree(void) {
+PyMODINIT_FUNC PyInit_bindertree() {
     PyObject *py_module = PyModule_Create(&bindertree_def);
 
     if (add_class(&bindertree_spec, py_module) == -1) {
