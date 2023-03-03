@@ -4,13 +4,13 @@
 
 #include "internal_rangetree.h"
 
-void inorder_tree_walk(node *x) {
-  if (x != nullptr) {
-    inorder_tree_walk(x->l);
-    printf("[(%d, %d), %d]\n", static_cast<int>(x->p[0]), static_cast<int>(x->p[1]), x->lvl);
-    inorder_tree_walk(x->r);
-  }
-}
+// void inorder_tree_walk(node *x) {
+//   if (x != nullptr) {
+//     inorder_tree_walk(x->l);
+//     printf("[(%d, %d), %d]\n", static_cast<int>(x->p[0]), static_cast<int>(x->p[1]), x->lvl);
+//     inorder_tree_walk(x->r);
+//   }
+// }
 
 Point::Point(double x, double y) {
   this->x = x;
