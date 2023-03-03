@@ -4,6 +4,14 @@
 
 #include "internal_rangetree.h"
 
+void inorder_tree_walk(node *x) {
+  if (x != nullptr) {
+    inorder_tree_walk(x->l);
+    printf("[(%d, %d), %d]\n", static_cast<int>(x->p[0]), static_cast<int>(x->p[1]), x->lvl);
+    inorder_tree_walk(x->r);
+  }
+}
+
 Point::Point(double x, double y) {
   this->x = x;
   this->y = y;
@@ -76,11 +84,12 @@ Point Range2D::dst(Range2D other) {
 }
 
 node *InternalTree::build(std::vector<record> &points, int d, std::vector<record>::iterator l, std::vector<record>::iterator r) {
+  // if (d > 0) { printf("(%d, %d)\n", (int)std::distance(points.begin(), l), (int)std::distance(points.begin(), r)); }
    std::size_t n = r - l;
 
-   std::size_t m = static_cast<int>(n / 2);
+   std::size_t m = static_cast<size_t>(n / 2);
 
-   record k = points[m];
+   record k = *(l + m);
 
    auto x = new node(k);
    if (n != 1) {
@@ -109,6 +118,7 @@ InternalTree::InternalTree(std::vector<record> points) {
   });
 
   this->root = this->build(points, 1, points.begin(), points.end());
+  // inorder_tree_walk(this->root);
 }
 
 bool InternalTree::is_external(node *x) {

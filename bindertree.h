@@ -18,6 +18,7 @@ std::vector<record> read_records(PyObject *args);
 // Python-facing front-end of the binder tree.
 class BinderTree {
   public:
+    // After this constructor returns lvl might not be available again.
     BinderTree(PyObject *args) : internal_tree(new InternalBinderTree(read_records(args))) {};
     PyObject *search(PyObject *args);
     PyObject *zoom_search(PyObject *args);

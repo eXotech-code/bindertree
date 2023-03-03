@@ -71,7 +71,7 @@ std::vector<record> read_records(PyObject *args) {
     if (!PyList_Check(objectList)) {
       return {};
     } else {
-      record new_record = {{}, 0};
+      record new_record = {{}, -1};
 
       for (int j = 0; j < 2; j++) {
         PyObject *val = PyList_GetItem(objectList, j);
@@ -90,7 +90,7 @@ std::vector<record> read_records(PyObject *args) {
     }
   }
 
-  return records;
+  return records; // A
 }
 
 PyObject *BinderTree::search(PyObject *args) {
@@ -171,7 +171,7 @@ int BinderTree_init(PyObject *self, PyObject *args, PyObject *kwds) {
       return -1;
     }
 
-    m->m_bindertree = new BinderTree(args);
+    m->m_bindertree = new BinderTree(args); // A
 
     return 0;
 }

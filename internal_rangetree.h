@@ -54,7 +54,7 @@ struct node {
   node *l; // left child
   node *r; // right child
   node *aux; // pointer to root of auxilary tree (only relevant for nodes in first dim).
-  node(record &k) : p(k.p), lvl(k.lvl), l(nullptr), r(nullptr), aux(nullptr) {};
+  node(record k) : p(k.p), lvl(k.lvl), l(nullptr), r(nullptr), aux(nullptr) {};
 };
 
 class InternalTree {
