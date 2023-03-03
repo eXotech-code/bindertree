@@ -21,10 +21,14 @@ double InternalBinderTree::greater_len(Range2D &q) {
 }
 
 Range2D InternalBinderTree::squareify(Range2D &q) {
+  /* Create a square search range that is centered on the same point
+   * as the base search range. */
+  const Point center = q.center();
   const double len_side = this->greater_len(q);
-  Point high = {q.x.low + len_side, q.y.low + len_side / 2};
+  Point low = {center.x - len_side / 2, center.y - len_side / 4};
+  Point high = {center.x + len_side / 2, center.y + len_side / 4};
 
-  return Range2D(Point(q.x.low, q.y.low), high);
+  return Range2D(low, high);
 }
 
 Point InternalBinderTree::target(int zoom_lvl) {
