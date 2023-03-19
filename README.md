@@ -1,4 +1,4 @@
-# rangetree-cpp
+# bindertree
 
 This is a fast Python library written in C++ that utlizes a range tree
 with additional layer that binds individual points in groups in order to generate
